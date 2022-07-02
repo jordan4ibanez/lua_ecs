@@ -52,3 +52,10 @@ my_component_system:add_entity({
 
 Removes an entity from the ECS. Index is a number. It's best to let a system handle this rather than try to manually remove indexes.
 
+## dump_ecs(ecs)
+
+Formats your ECS into a more readable arangement. This is helpful for debugging, because it assembles the raw components into what they would look like object oriented.
+
+```
+print(dump_ecs(my_component_system))
+```
