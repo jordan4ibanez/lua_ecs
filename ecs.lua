@@ -112,3 +112,40 @@ function ecs:remove_entity(index)
 
     self.entity_count = self.entity_count - 1
 end
+
+function dump_ecs(entity_component_system)
+
+	-- don't try to print ecs if no entities
+
+	if entity_component_system.entity_count <= 0 then
+		print("No entities defined")
+		return
+	end
+
+	-- preassemble the components of the ecs
+
+	local key_dump = {}
+
+	for key,_ in pairs(entity_component_system) do
+		if key ~= "entity_count" then
+			table_insert(key_dump, key)
+		end
+	end
+
+	-- run through each entity, assemble it into debug string
+
+	for i = 1,entity_component_system.entity_count do
+
+		local entity_print_string = "[entity " .. tostring(i) .. "]"
+
+		for _,value in ipairs(key_dump) do
+
+			entity_print_string = entity_print_string .. " " .. value .. ": "
+
+			entity_print_string = entity_print_string .. entity_component_system[value][i] .. " |"
+
+		end
+
+		print(entity_print_string)
+	end
+end

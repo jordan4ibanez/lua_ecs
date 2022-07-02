@@ -1,5 +1,6 @@
 {
     "Lua.diagnostics.globals": [
-        "ecs"
+        "ecs",
+        "dump_ecs"
     ]
 }
