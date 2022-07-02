@@ -142,7 +142,7 @@ function dump_ecs(entity_component_system)
 
 			entity_print_string = entity_print_string .. " " .. value .. ": "
 
-			entity_print_string = entity_print_string .. entity_component_system[value][i] .. " |"
+			entity_print_string = entity_print_string .. tostring(entity_component_system[value][i]) .. " |"
 
 		end
 
