@@ -9,16 +9,22 @@ local table_remove, table_insert
 
 ecs = {}
 
+local id = 0
+
 -- constructor
 
 function ecs:new(object)
     object = object or {}
 
+    object.entity_count = 0
+
+    object.id = id
+
+    id = id + 1
+
     setmetatable(object, self)
 
     self.__index = self
-
-    self.entity_count = 0
 
     return object
 end
@@ -28,6 +34,8 @@ end
 function ecs:add_component(component)
 
     assert(component ~= "entity_count", "entity_count is a reserved key word for ecs")
+
+    assert(component ~= "id", "id is a reserved key word for ecs")
 
     assert(type(component) == "string", "ecs key word must be a string")
 
@@ -46,6 +54,8 @@ function ecs:add_components(component_table)
     for key,value in pairs(component_table) do
 
         assert(value ~= "entity_count", "entity_count is a reserved key word for ecs")
+
+        assert(value ~= "id", "id is a reserved key word for ecs")
 
         assert(type(value) == "string", "ecs key word must be a string")
 
@@ -81,7 +91,7 @@ function ecs:add_entity(component_variable_table)
 
         -- don't utilize ecs builder
 
-        if key ~= "entity_count" then
+        if key ~= "entity_count" and key ~= "id" then
 
             local new_value = component_variable_table[key]
 
@@ -105,7 +115,7 @@ function ecs:remove_entity(index)
     assert(index <= self.entity_count and index > 0, "trying to remove entity that does not exist!")
 
     for key,table in pairs(self) do
-        if key ~= "entity_count" then
+        if key ~= "entity_count" and key ~= "id" then
             table_remove(table, index)
         end
     end
@@ -127,7 +137,7 @@ function dump_ecs(entity_component_system)
 	local key_dump = {}
 
 	for key,_ in pairs(entity_component_system) do
-		if key ~= "entity_count" then
+		if key ~= "entity_count" and key ~= "id" then
 			table_insert(key_dump, key)
 		end
 	end
