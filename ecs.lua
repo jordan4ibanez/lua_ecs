@@ -5,6 +5,17 @@ local table_remove, table_insert
       table.remove, table.insert
 
 
+-- helper function
+
+local function contains(table, value)
+    for _,key in ipairs(table) do
+        if key == value then
+            return true
+        end
+    end
+    return false
+end
+
 -- ecs base class
 
 ecs = {}
@@ -20,6 +31,8 @@ function ecs:new(object)
 
     object.id = id
 
+    object.component_list = {}
+
     id = id + 1
 
     setmetatable(object, self)
@@ -34,35 +47,33 @@ end
 function ecs:add_component(component)
 
     assert(component ~= "entity_count", "entity_count is a reserved key word for ecs")
-
     assert(component ~= "id", "id is a reserved key word for ecs")
-
     assert(type(component) == "string", "ecs key word must be a string")
-
     assert(component ~= nil, "nil keyword for ecs")
 
-
-
-    if not self[component] then
+    -- only allow new components
+    if not contains(self.component_list, component) then
         self[component] = {}
+        table_insert(self.component_list, component)
     end
 end
 
 -- bulk component addons
 
 function ecs:add_components(component_table)
-    for key,value in pairs(component_table) do
 
-        assert(value ~= "entity_count", "entity_count is a reserved key word for ecs")
+    local inernal_component_list = self.component_list
 
-        assert(value ~= "id", "id is a reserved key word for ecs")
+    for _,component in ipairs(component_table) do
 
-        assert(type(value) == "string", "ecs key word must be a string")
+        assert(component ~= "entity_count", "entity_count is a reserved key word for ecs")
+        assert(component ~= "id", "id is a reserved key word for ecs")
+        assert(type(component) == "string", "ecs key word must be a string")
+        assert(component ~= nil, "nil keyword for ecs")
 
-        assert(value ~= nil, "nil keyword for ecs")
-
-        if not self[value] then
-            self[value] = {}
+        if not contains(inernal_component_list, component) then
+            self[component] = {}
+            table_insert(inernal_component_list, component)
         end
     end
 end
@@ -70,7 +81,7 @@ end
 -- allows you to get the component table
 
 function ecs:get_component(component)
-    if self[component] then
+    if contains(self.component_list, component) then
         return self[component]
     else
         return nil
@@ -87,37 +98,31 @@ function ecs:add_entity(component_variable_table)
 
     -- dynamic calculation of missing variables
 
-    for key,_ in pairs(self) do
+    for _,key in ipairs(self.component_list) do
 
-        -- don't utilize ecs builder
+        local new_value = component_variable_table[key]
 
-        if key ~= "entity_count" and key ~= "id" then
+        -- undefined - false
 
-            local new_value = component_variable_table[key]
-
-            -- undefined - false
-
-            if new_value == nil then
-                new_value = false
-            end
-
-            table_insert(self[key], new_value)
-
+        if new_value == nil then
+            new_value = false
         end
+
+        table_insert(self[key], new_value)
     end
 end
 
 -- entity destruction system
 function ecs:remove_entity(index)
 
-    -- do not allow out of bounds
+    -- do not allow removing nil entity
 
-    assert(index <= self.entity_count and index > 0, "trying to remove entity that does not exist!")
+    local internal_component_list = self.component_list
 
-    for key,table in pairs(self) do
-        if key ~= "entity_count" and key ~= "id" then
-            table_remove(table, index)
-        end
+    assert(self[internal_component_list[1]][index] ~= nil, "Tried to remove nil entity!")
+
+    for _,key in ipairs(internal_component_list) do
+        table_remove(self[key], index)
     end
 
     self.entity_count = self.entity_count - 1
@@ -132,27 +137,17 @@ function dump_ecs(entity_component_system)
 		return
 	end
 
-	-- preassemble the components of the ecs
-
-	local key_dump = {}
-
-	for key,_ in pairs(entity_component_system) do
-		if key ~= "entity_count" and key ~= "id" then
-			table_insert(key_dump, key)
-		end
-	end
-
 	-- run through each entity, assemble it into debug string
 
 	for i = 1,entity_component_system.entity_count do
 
 		local entity_print_string = "[entity " .. tostring(i) .. "]"
 
-		for _,value in ipairs(key_dump) do
+		for _,key in ipairs(entity_component_system.component_list) do
 
-			entity_print_string = entity_print_string .. " " .. value .. ": "
+			entity_print_string = entity_print_string .. " " .. key .. ": "
 
-			entity_print_string = entity_print_string .. tostring(entity_component_system[value][i]) .. " |"
+			entity_print_string = entity_print_string .. tostring(entity_component_system[key][i]) .. " |"
 
 		end
 
